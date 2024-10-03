@@ -2,12 +2,21 @@ import jwt
 from flask import Blueprint, request, jsonify
 from ..models.models import User, MealType, Meal, MealTime
 from email_validator import validate_email, EmailNotValidError
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    get_jwt,
+    create_access_token,
+)
 from typing import Tuple
 from datetime import datetime, timedelta
-from ... import db, bcrypt
+from ... import db, bcrypt, jwt_manager
 
 auth_bp = Blueprint("auth", __name__)
+
+
+# Debugging purposes
+revoked_tokens = set()
 
 
 def validate_email_address(email: str) -> Tuple[bool, str]:
@@ -114,3 +123,17 @@ def login():
         return jsonify({"access_token": access_token, "user_id": user.id}), 200
 
     return jsonify({"message": "Invalid email or password"}), 401
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    revoked_tokens.add(jti)
+    return jsonify(message="Successfully logged out"), 200
+
+
+@jwt_manager.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    return jti in revoked_tokens

@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+jwt_manager = JWTManager()
 
 
 def create_app():
@@ -12,9 +13,14 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
     app.config["JWT_SECRET_KEY"] = "TEST_KEY"
 
+    # Add JWT configuration
+    app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
+    app.config["JWT_HEADER_NAME"] = "Authorization"
+    app.config["JWT_HEADER_TYPE"] = "Bearer"
+
     db.init_app(app)
     bcrypt.init_app(app)
-    JWTManager(app)
+    jwt_manager.init_app(app)
 
     from .app.auth.auth import auth_bp
     from .app.management.user_management import user_management
