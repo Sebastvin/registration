@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mealPreference, setMealPreference] = useState('vegetarian'); // Default value
+  const [mealPreference, setMealPreference] = useState('vegetarian');
   const [mealTimes, setMealTimes] = useState({
     breakfast: false,
     lunch: false,
@@ -12,6 +12,7 @@ function RegisterForm() {
   const [participationStartTime, setParticipationStartTime] = useState('');
   const [participationEndTime, setParticipationEndTime] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleMealTimeChange = (e) => {
     const { name, checked } = e.target;
@@ -21,14 +22,15 @@ function RegisterForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     const startTime = new Date(participationStartTime);
     const endTime = new Date(participationEndTime);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to the start of the day
+    today.setHours(0, 0, 0, 0);
 
     if (startTime < today) {
       setError('Participation Start Time must be today or in the future.');
@@ -40,15 +42,43 @@ function RegisterForm() {
       return;
     }
 
-    // Handle registration logic here (e.g., API call)
-    console.log('Registering with:', {
+    const mealChoices = Object.keys(mealTimes).filter((meal) => mealTimes[meal]);
+
+    const userData = {
       email,
       password,
-      mealPreference,
-      mealTimes,
-      participationStartTime,
-      participationEndTime,
-    });
+      meal_preference: mealPreference,
+      participation_start_time: participationStartTime,
+      participation_end_time: participationEndTime,
+      meal_choices: mealChoices,
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/register', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      setSuccessMessage(data.message);
+      // Reset form fields
+      setEmail('');
+      setPassword('');
+      setMealPreference('vegetarian');
+      setMealTimes({ breakfast: false, lunch: false, dinner: false });
+      setParticipationStartTime('');
+      setParticipationEndTime('');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -132,6 +162,7 @@ function RegisterForm() {
           />
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
+        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
         <button type="submit">Register</button>
       </form>
     </div>

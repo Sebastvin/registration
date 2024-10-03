@@ -4,3 +4,4 @@ Flask-Bcrypt
 PyJWT
 email-validator
 flask-jwt-extended
+flask-cors
