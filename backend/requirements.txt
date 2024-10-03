@@ -3,3 +3,4 @@ Flask-SQLAlchemypip
 Flask-Bcrypt
 PyJWT
 email-validator
+flask-jwt-extended
