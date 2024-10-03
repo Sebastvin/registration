@@ -1,4 +1,4 @@
-from . import db
+from ... import db
 from enum import Enum
 from sqlalchemy import Enum as SQLAlchemyEnum
 

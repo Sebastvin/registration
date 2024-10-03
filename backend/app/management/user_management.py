@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-from .models import User, MealType, Meal, MealTime
+from ..models.models import User, MealType, Meal, MealTime
 from flask_jwt_extended import jwt_required
-from . import db
+from ... import db
 from datetime import datetime
 
 user_management = Blueprint("user_management", __name__)

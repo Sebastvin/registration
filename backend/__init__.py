@@ -16,9 +16,9 @@ def create_app():
     bcrypt.init_app(app)
     JWTManager(app)
 
-    from .auth import auth_bp
-    from .user_management import user_management
-    from .models import init_meals
+    from .app.auth.auth import auth_bp
+    from .app.management.user_management import user_management
+    from .app.models.models import init_meals
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_management, url_prefix="/api")

@@ -1,11 +1,11 @@
 import jwt
 from flask import Blueprint, request, jsonify
-from .models import User, MealType, Meal
+from ..models.models import User, MealType, Meal, MealTime
 from email_validator import validate_email, EmailNotValidError
 from flask_jwt_extended import create_access_token
 from typing import Tuple
 from datetime import datetime, timedelta
-from . import db, bcrypt
+from ... import db, bcrypt
 
 auth_bp = Blueprint("auth", __name__)
 
