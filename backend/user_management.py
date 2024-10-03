@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from .models import User, MealType, Meal, MealTime
+from flask_jwt_extended import jwt_required
 from . import db
 from datetime import datetime
 
@@ -7,6 +8,7 @@ user_management = Blueprint("user_management", __name__)
 
 
 @user_management.route("/users", methods=["GET"])
+@jwt_required()
 def get_users():
     users = User.query.all()
     return (
@@ -35,6 +37,7 @@ def get_users():
 
 
 @user_management.route("/users/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return (
@@ -60,6 +63,7 @@ def get_user(user_id):
 
 
 @user_management.route("/users", methods=["POST"])
+@jwt_required()
 def create_user():
     data = request.get_json()
 
@@ -101,6 +105,7 @@ def create_user():
 
 
 @user_management.route("/users/<int:user_id>", methods=["PUT"])
+@jwt_required()
 def update_user(user_id):
     user = User.query.get_or_404(user_id)
     data = request.get_json()
@@ -140,6 +145,7 @@ def update_user(user_id):
 
 
 @user_management.route("/users/<int:user_id>", methods=["DELETE"])
+@jwt_required()
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)

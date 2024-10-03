@@ -1,7 +1,8 @@
 import jwt
 from flask import Blueprint, request, jsonify
-from .models import User, MealType, Meal, MealTime
+from .models import User, MealType, Meal
 from email_validator import validate_email, EmailNotValidError
+from flask_jwt_extended import create_access_token
 from typing import Tuple
 from datetime import datetime, timedelta
 from . import db, bcrypt
@@ -101,7 +102,7 @@ def login():
     user = User.query.filter_by(email=email_or_error).first()
 
     if user and bcrypt.check_password_hash(user.password, password):
-        token = jwt.encode(
+        access_token = create_access_token(
             {
                 "user_id": user.id,
                 "email": user.email,
@@ -110,6 +111,6 @@ def login():
             "TEST_KEY",
         )
 
-        return jsonify({"token": token}), 200
+        return jsonify(access_token=access_token), 200
 
     return jsonify({"message": "Invalid email or password"}), 401
