@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify
-from .models import User
-
+from flask import Blueprint, jsonify, request
+from .models import User, MealType, Meal, MealTime
+from . import db
+from datetime import datetime
 
 user_management = Blueprint("user_management", __name__)
 
@@ -56,3 +57,44 @@ def get_user(user_id):
         ),
         200,
     )
+
+
+@user_management.route("/users", methods=["POST"])
+def create_user():
+    data = request.get_json()
+
+    required_fields = ["email", "password"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"message": f"{field} is required"}), 400
+
+    if User.query.filter_by(email=data["email"]).first():
+        return jsonify({"message": "User already exists"}), 400
+
+    new_user = User(
+        email=data["email"],
+        password=data["password"],
+        is_organiser=data.get("is_organiser", False),
+        meal_preference=MealType[data["meal_preference"].upper()]
+        if "meal_preference" in data
+        else None,
+        participation_start_time=datetime.fromisoformat(
+            data["participation_start_time"]
+        )
+        if "participation_start_time" in data
+        else None,
+        participation_end_time=datetime.fromisoformat(data["participation_end_time"])
+        if "participation_end_time" in data
+        else None,
+    )
+
+    if "meals" in data:
+        for meal_time in data["meals"]:
+            meal = Meal.query.filter_by(meal_time=MealTime[meal_time.upper()]).first()
+            if meal:
+                new_user.meals.append(meal)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User created successfully"}), 201
