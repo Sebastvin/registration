@@ -1,12 +1,45 @@
 import React, { useState } from 'react';
+import Cookies from 'js-cookie'; // Import the js-cookie library
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Logging in with:', { email, password });
+    setError('');
+    setSuccessMessage('');
+
+    const userData = {
+      email,
+      password,
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      setSuccessMessage('Login successful!');
+
+      Cookies.set('access_token', data.access_token, { expires: 1 });
+      setEmail('');
+      setPassword('');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -31,6 +64,8 @@ function LoginForm() {
             required
           />
         </div>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
         <button type="submit">Login</button>
       </form>
     </div>
