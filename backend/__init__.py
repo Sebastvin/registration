@@ -17,11 +17,13 @@ def create_app():
 
     from .auth import auth_bp
     from .user_management import user_management
+    from .models import init_meals
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_management, url_prefix="/api")
 
     with app.app_context():
         db.create_all()
+        init_meals()
 
     return app

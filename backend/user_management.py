@@ -18,11 +18,11 @@ def get_users():
                     "meal_preference": user.meal_preference.value
                     if user.meal_preference
                     else None,
-                    "event_start_time": user.event_start_time.isoformat()
-                    if user.event_start_time
+                    "participation_start_time": user.participation_start_time.isoformat()
+                    if user.participation_start_time
                     else None,
-                    "event_end_time": user.event_end_time.isoformat()
-                    if user.event_end_time
+                    "participation_end_time": user.participation_end_time.isoformat()
+                    if user.participation_end_time
                     else None,
                     "meals": [meal.meal_time.value for meal in user.meals],
                 }

@@ -49,3 +49,12 @@ class User(db.Model):
         if self.participation_start_time and self.participation_end_time:
             return self.participation_end_time - self.participation_start_time
         return None
+
+
+def init_meals():
+    for meal_time in MealTime:
+        meal = Meal.query.filter_by(meal_time=meal_time).first()
+        if not meal:
+            new_meal = Meal(meal_time=meal_time)
+            db.session.add(new_meal)
+    db.session.commit()
