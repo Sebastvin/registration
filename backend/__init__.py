@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -12,6 +13,8 @@ def create_app():
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
     app.config["JWT_SECRET_KEY"] = "TEST_KEY"
+
+    CORS(app)
 
     # Add JWT configuration
     app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]

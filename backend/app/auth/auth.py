@@ -130,7 +130,7 @@ def login():
 def logout():
     jti = get_jwt()["jti"]
     revoked_tokens.add(jti)
-    return jsonify(message="Successfully logged out"), 200
+    return jsonify({"message": "Successfully logged out"}), 200
 
 
 @jwt_manager.token_in_blocklist_loader

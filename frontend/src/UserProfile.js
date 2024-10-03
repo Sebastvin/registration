@@ -1,11 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
 function UserProfile() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
+
+    const handleLogout = async () => {
+        try {
+            await fetch('http://localhost:5000/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Cookies.get('access_token')}`,
+                },
+            });
+            Cookies.remove('access_token');
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            setError('Logout failed. Please try again.');
+        }
+    };
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -60,7 +78,8 @@ function UserProfile() {
             {user.meals.map((meal, index) => (
                 <p key={index}>{meal}</p>
             ))}
- 
+            
+            <button onClick={handleLogout}>Logout</button> 
         </div>
     );
 }
