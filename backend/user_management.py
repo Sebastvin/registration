@@ -98,3 +98,42 @@ def create_user():
     db.session.commit()
 
     return jsonify({"message": "User created successfully"}), 201
+
+
+@user_management.route("/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+
+    if "email" in data:
+        user.email = data["email"]
+    if "is_organiser" in data:
+        user.is_organiser = data["is_organiser"]
+    if "meal_preference" in data:
+        user.meal_preference = (
+            MealType[data["meal_preference"].upper()]
+            if data["meal_preference"]
+            else None
+        )
+    if "participation_start_time" in data:
+        user.participation_start_time = (
+            datetime.fromisoformat(data["participation_start_time"])
+            if data["participation_start_time"]
+            else None
+        )
+    if "participation_end_time" in data:
+        user.participation_end_time = (
+            datetime.fromisoformat(data["participation_end_time"])
+            if data["participation_end_time"]
+            else None
+        )
+
+    if "meals" in data:
+        user.meals = []
+        for meal_time in data["meals"]:
+            meal = Meal.query.filter_by(meal_time=MealTime[meal_time.upper()]).first()
+            if meal:
+                user.meals.append(meal)
+
+    db.session.commit()
+    return jsonify({"message": "User updated successfully"}), 200

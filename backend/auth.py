@@ -105,7 +105,7 @@ def login():
             {
                 "user_id": user.id,
                 "email": user.email,
-                "exp": datetime.utcnow() + timedelta(hours=1),
+                "exp": datetime.now() + timedelta(hours=1),
             },
             "TEST_KEY",
         )
