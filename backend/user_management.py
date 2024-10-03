@@ -137,3 +137,11 @@ def update_user(user_id):
 
     db.session.commit()
     return jsonify({"message": "User updated successfully"}), 200
+
+
+@user_management.route("/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "User deleted successfully"}), 200
