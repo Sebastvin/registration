@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import Cookies from 'js-cookie'; // Import the js-cookie library
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
+
 
 function LoginForm() {
+const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +38,10 @@ function LoginForm() {
       setSuccessMessage('Login successful!');
 
       Cookies.set('access_token', data.access_token, { expires: 1 });
+
+      navigate(`/profile/${data.user_id}`);
+
+
       setEmail('');
       setPassword('');
     } catch (error) {

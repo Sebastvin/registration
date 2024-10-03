@@ -111,6 +111,6 @@ def login():
             "TEST_KEY",
         )
 
-        return jsonify(access_token=access_token), 200
+        return jsonify({"access_token": access_token, "user_id": user.id}), 200
 
     return jsonify({"message": "Invalid email or password"}), 401
