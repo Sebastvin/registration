@@ -1,5 +1,5 @@
 flask
-Flask-SQLAlchemypip
+Flask-SQLAlchemy
 Flask-Bcrypt
 PyJWT
 email-validator

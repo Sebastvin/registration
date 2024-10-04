@@ -44,3 +44,12 @@ npm install
 ```
 npm start
 ```
+
+## Note
+To create a `is_organiser=True` user use postman or other tool and then modify field using `PUT` method
+
+```json
+{
+    "is_organiser": true
+}
+```
