@@ -178,3 +178,15 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted successfully"}), 200
+
+
+@user_management.route("/user/role", methods=["GET"])
+@jwt_required()
+def check_user_role():
+    current_user = get_jwt_identity()
+    user = User.query.get(current_user)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return jsonify({"is_organiser": user.is_organiser}), 200
