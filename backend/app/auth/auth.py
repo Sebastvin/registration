@@ -1,4 +1,3 @@
-import jwt
 from flask import Blueprint, request, jsonify
 from ..models.models import User, MealType, Meal, MealTime
 from email_validator import validate_email, EmailNotValidError
@@ -7,9 +6,11 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt,
     create_access_token,
+    set_access_cookies,
+    unset_jwt_cookies,
 )
 from typing import Tuple
-from datetime import datetime, timedelta
+from datetime import datetime
 from ... import db, bcrypt, jwt_manager
 
 auth_bp = Blueprint("auth", __name__)
@@ -111,26 +112,28 @@ def login():
     user = User.query.filter_by(email=email_or_error).first()
 
     if user and bcrypt.check_password_hash(user.password, password):
-        access_token = create_access_token(
-            {
-                "user_id": user.id,
-                "email": user.email,
-                "exp": datetime.now() + timedelta(hours=1),
-            },
-            "TEST_KEY",
-        )
+        access_token = create_access_token(identity=user.id)
 
-        return jsonify({"access_token": access_token, "user_id": user.id}), 200
+        response = jsonify({"message": "Login successful"})
+        set_access_cookies(response, access_token)
+        return response, 200
 
     return jsonify({"message": "Invalid email or password"}), 401
 
 
 @auth_bp.route("/logout", methods=["POST"])
-@jwt_required()
+@jwt_required(optional=True)
 def logout():
-    jti = get_jwt()["jti"]
-    revoked_tokens.add(jti)
-    return jsonify({"message": "Successfully logged out"}), 200
+    try:
+        jti = get_jwt().get("jti")
+        if jti:
+            revoked_tokens.add(jti)
+        response = jsonify({"message": "Successfully logged out"})
+        unset_jwt_cookies(response)
+        return response, 200
+    except Exception as e:
+        print(f"Logout error: {str(e)}")
+        return jsonify({"message": f"Logout failed: {str(e)}"}), 500
 
 
 @jwt_manager.token_in_blocklist_loader

@@ -4,6 +4,7 @@ import MainPage from './MainPage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import UserProfile from './UserProfile';
+import AdminPage from './AdminPage';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserProfile />} /> 
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </div>
     </Router>

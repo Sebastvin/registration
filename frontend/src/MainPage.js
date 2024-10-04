@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 
 function MainPage() {
     const navigate = useNavigate();
-    const token = Cookies.get('access_token');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/user/profile', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                setIsAuthenticated(response.ok);
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                setIsAuthenticated(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, []);
 
     return (
         <div className="main-page">
             <h1>Registration System</h1>
-            {token ? (
+            {isAuthenticated ? (
                 <button onClick={() => navigate('/profile')}>Go to Profile</button>
             ) : (
                 <>

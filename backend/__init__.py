@@ -14,12 +14,13 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
     app.config["JWT_SECRET_KEY"] = "TEST_KEY"
 
-    CORS(app)
+    CORS(app, supports_credentials=True)
 
     # Add JWT configuration
-    app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
-    app.config["JWT_HEADER_NAME"] = "Authorization"
-    app.config["JWT_HEADER_TYPE"] = "Bearer"
+    app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+    app.config["JWT_ACCESS_COOKIE_PATH"] = "/api/"
 
     db.init_app(app)
     bcrypt.init_app(app)

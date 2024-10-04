@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from ..models.models import User, MealType, Meal, MealTime
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from ... import db
 from datetime import datetime
 
@@ -31,6 +31,33 @@ def get_users():
                 }
                 for user in users
             ]
+        ),
+        200,
+    )
+
+
+@user_management.route("/user/profile", methods=["GET"])
+@jwt_required()
+def get_user_profile():
+    current_user = get_jwt_identity()
+    user = User.query.get(current_user)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+    return (
+        jsonify(
+            {
+                "email": user.email,
+                "meal_preference": user.meal_preference.name
+                if user.meal_preference
+                else None,
+                "participation_start_time": user.participation_start_time.isoformat()
+                if user.participation_start_time
+                else None,
+                "participation_end_time": user.participation_end_time.isoformat()
+                if user.participation_end_time
+                else None,
+                "meals": [meal.meal_time.name for meal in user.meals],
+            }
         ),
         200,
     )

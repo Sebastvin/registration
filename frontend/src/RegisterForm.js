@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function RegisterForm() {
@@ -23,6 +23,25 @@ function RegisterForm() {
       [name]: checked,
     }));
   };
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/user/profile', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                navigate('/profile');
+            }
+        } catch (error) {
+            console.error('Error checking auth status:', error);
+        }
+    };
+
+    checkAuthStatus();
+}, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

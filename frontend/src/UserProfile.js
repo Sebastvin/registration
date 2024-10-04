@@ -1,69 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 function UserProfile() {
-    const { id } = useParams();
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
 
     const handleLogout = async () => {
         try {
-            await fetch('http://localhost:5000/logout', {
+            const response = await fetch('http://localhost:5000/logout', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Cookies.get('access_token')}`,
-                },
+                credentials: 'include',
             });
-            Cookies.remove('access_token');
-            sessionStorage.removeItem('user_id'); 
-            navigate('/login');
+            console.log('Logout response status:', response.status);
+            const data = await response.json();
+            console.log('Logout response data:', data);
+    
+            if (response.ok) {
+                console.log('Logout successful, navigating to login page');
+                navigate('/login');
+            } else {
+                const errorMessage = data.message || 'Logout failed';
+                console.error('Logout failed:', errorMessage);
+                setError(`Logout failed: ${errorMessage}`);
+            }
         } catch (error) {
-            console.error('Logout failed:', error);
-            setError('Logout failed. Please try again.');
+            console.error('Logout error:', error);
+            setError(`Logout failed: ${error.message || 'Unknown error'}`);
+        }
+    };
+
+    const fetchUserProfile = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/user/profile', {
+                method: 'GET',
+                credentials: 'include',
+            });
+    
+            console.log('Profile response status:', response.status);
+    
+            if (response.status === 401) {
+                console.log('Unauthorized, redirecting to login');
+                navigate('/login');
+                return;
+            }
+    
+            if (!response.ok) {
+                throw new Error('Failed to fetch user profile');
+            }
+    
+            const data = await response.json();
+            console.log('Profile data:', data);
+            setUser(data);
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            setError(error.message);
         }
     };
 
     useEffect(() => {
-        const token = Cookies.get('access_token');
-        const userId = sessionStorage.getItem('user_id'); 
-        
-        if (!token) {
-            navigate('/'); 
-        } else {
-            const fetchUserProfile = async () => {
-                const token = Cookies.get('access_token');
-                if (!token) {
-                    setError('No access token found. Please log in.');
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user profile');
-                    }
-
-                    const data = await response.json();
-
-                    console.log(data);
-                    setUser(data);
-                } catch (error) {
-                    setError(error.message);
-                }
-            };
-            fetchUserProfile();
-        }
-    }, [id]);
+        fetchUserProfile();
+    }, [navigate]);
 
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>;
@@ -81,12 +78,10 @@ function UserProfile() {
             <p><strong>Participation Start Time:</strong> {user.participation_start_time}</p>
             <p><strong>Participation End Time:</strong> {user.participation_end_time}</p>
             <h3>Meal Choices:</h3>
-     
             {user.meals.map((meal, index) => (
                 <p key={index}>{meal}</p>
             ))}
-            
-            <button onClick={handleLogout}>Logout</button> 
+            <button onClick={handleLogout}>Logout</button>
         </div>
     );
 }
