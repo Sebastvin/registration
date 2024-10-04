@@ -5,7 +5,7 @@ import './Navbar.css';
 
 function Navbar() {
     const navigate = useNavigate();
-    const { isAuthenticated, userEmail, logout } = useContext(AuthContext);
+    const { isAuthenticated, userEmail, logout, isOrganizer } = useContext(AuthContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleLogout = async () => {

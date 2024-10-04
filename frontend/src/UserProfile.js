@@ -88,6 +88,14 @@ function UserProfile() {
                         </p>
                     ))}
                 </div>
+                {user.is_organiser && (
+                    <button 
+                        style={styles.button} 
+                        onClick={() => navigate('/admin')}
+                    >
+                        Admin
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -144,6 +152,17 @@ const styles = {
         marginLeft: '10px',
         color: '#777777',
         marginBottom: '5px',
+    },
+
+    button: {
+        backgroundColor: '#007bff',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontSize: '16px',
+        transition: 'background-color 0.3s',
     },
 };
 

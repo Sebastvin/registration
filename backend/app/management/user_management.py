@@ -47,6 +47,7 @@ def get_user_profile():
         jsonify(
             {
                 "email": user.email,
+                "is_organiser": user.is_organiser,
                 "meal_preference": user.meal_preference.name
                 if user.meal_preference
                 else None,
