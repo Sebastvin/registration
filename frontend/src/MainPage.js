@@ -1,24 +1,24 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function MainPage() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const token = Cookies.get('access_token');
 
-  const handleLogin = () => {
-    navigate('/login');
-  };
-
-  const handleRegister = () => {
-    navigate('/register');
-  };
-
-  return (
-    <div className="main-page">
-      <h1>Registration system</h1>
-      <button onClick={handleLogin}>Login</button>
-      <button onClick={handleRegister}>Register</button>
-    </div>
-  );
+    return (
+        <div className="main-page">
+            <h1>Registration System</h1>
+            {token ? (
+                <button onClick={() => navigate('/profile')}>Go to Profile</button>
+            ) : (
+                <>
+                    <button onClick={() => navigate('/login')}>Login</button>
+                    <button onClick={() => navigate('/register')}>Register</button>
+                </>
+            )}
+        </div>
+    );
 }
 
 export default MainPage;

@@ -38,8 +38,9 @@ const navigate = useNavigate();
       setSuccessMessage('Login successful!');
 
       Cookies.set('access_token', data.access_token, { expires: 1 });
+      sessionStorage.setItem('user_id', data.user_id);
 
-      navigate(`/profile/${data.user_id}`);
+      navigate(`/profile`);
 
 
       setEmail('');

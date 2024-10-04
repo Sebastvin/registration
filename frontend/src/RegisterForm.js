@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function RegisterForm() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mealPreference, setMealPreference] = useState('vegetarian');
@@ -69,13 +71,15 @@ function RegisterForm() {
       }
 
       setSuccessMessage(data.message);
-      // Reset form fields
+
       setEmail('');
       setPassword('');
       setMealPreference('vegetarian');
       setMealTimes({ breakfast: false, lunch: false, dinner: false });
       setParticipationStartTime('');
       setParticipationEndTime('');
+
+      navigate('/login');
     } catch (error) {
       setError(error.message);
     }

@@ -18,6 +18,7 @@ function UserProfile() {
                 },
             });
             Cookies.remove('access_token');
+            sessionStorage.removeItem('user_id'); 
             navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
@@ -26,36 +27,42 @@ function UserProfile() {
     };
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
-            const token = Cookies.get('access_token');
-            if (!token) {
-                setError('No access token found. Please log in.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:5000/api/users/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user profile');
+        const token = Cookies.get('access_token');
+        const userId = sessionStorage.getItem('user_id'); 
+        
+        if (!token) {
+            navigate('/'); 
+        } else {
+            const fetchUserProfile = async () => {
+                const token = Cookies.get('access_token');
+                if (!token) {
+                    setError('No access token found. Please log in.');
+                    return;
                 }
 
-                const data = await response.json();
+                try {
+                    const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
 
-                console.log(data);
-                setUser(data);
-            } catch (error) {
-                setError(error.message);
-            }
-        };
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user profile');
+                    }
 
-        fetchUserProfile();
+                    const data = await response.json();
+
+                    console.log(data);
+                    setUser(data);
+                } catch (error) {
+                    setError(error.message);
+                }
+            };
+            fetchUserProfile();
+        }
     }, [id]);
 
     if (error) {
