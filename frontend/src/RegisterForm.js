@@ -4,7 +4,7 @@ import AuthContext from './AuthContext';
 
 function RegisterForm() {
     const navigate = useNavigate();
-    const { login } = useContext(AuthContext);
+    const { checkAuthStatus } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [mealPreference, setMealPreference] = useState('vegetarian');
@@ -78,10 +78,9 @@ function RegisterForm() {
             }
 
             setSuccessMessage('Registration successful!');
-            login(email); // Update the context
+            await checkAuthStatus();
             navigate('/profile');
 
-            // Reset form fields
             setEmail('');
             setPassword('');
             setMealPreference('vegetarian');

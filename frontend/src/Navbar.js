@@ -37,7 +37,7 @@ function Navbar() {
                 &#9776;
             </div>
             <div className={`navbar-items ${isMenuOpen ? 'active' : ''}`}>
-                {isAuthenticated ? (
+                {isAuthenticated && userEmail ? (
                     <>
                         <span className="user-email">{userEmail}</span>
                         <button className="navbar-button" onClick={handleLogout}>Logout</button>

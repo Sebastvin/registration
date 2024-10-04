@@ -1,10 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userEmail, setUserEmail] = useState('');
+    const [userEmail, setUserEmail] = useState(null);
+
+    useEffect(() => {
+        checkAuthStatus();
+    }, []);
 
     const checkAuthStatus = async () => {
         try {
@@ -19,18 +23,14 @@ export const AuthProvider = ({ children }) => {
                 setUserEmail(data.email);
             } else {
                 setIsAuthenticated(false);
-                setUserEmail('');
+                setUserEmail(null);
             }
         } catch (error) {
             console.error('Error checking auth status:', error);
             setIsAuthenticated(false);
-            setUserEmail('');
+            setUserEmail(null);
         }
     };
-
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
 
     const login = (email) => {
         setIsAuthenticated(true);
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         setIsAuthenticated(false);
-        setUserEmail('');
+        setUserEmail(null);
     };
 
     return (
