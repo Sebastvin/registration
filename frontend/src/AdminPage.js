@@ -10,6 +10,8 @@ function AdminPage() {
     const [isOrganiser, setIsOrganiser] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [modalError, setModalError] = useState('');
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('en-GB', {
@@ -17,7 +19,7 @@ function AdminPage() {
           month: '2-digit',
           year: '2-digit'
         }).format(date);
-      };
+    };
 
     useEffect(() => {
         const checkUserRole = async () => {
@@ -112,7 +114,8 @@ function AdminPage() {
             setUsers(updatedUsers);
             closeModal();
         } catch (error) {
-            setError(error.message);
+            console.error('Error updating user:', error);
+            setModalError(error.message);
         }
     };
 
@@ -137,18 +140,20 @@ function AdminPage() {
             closeModal();
         } catch (error) {
             console.error('Error adding user:', error);
-            setError(error.message);
+            setModalError(error.message);
         }
     };
 
     const openModal = (user = null) => {
         setCurrentUser(user);
         setIsModalOpen(true);
+        setModalError('');
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
         setCurrentUser(null);
+        setModalError('');
     };
 
     if (isLoading) {
@@ -203,7 +208,9 @@ function AdminPage() {
                     isOpen={isModalOpen} 
                     onClose={closeModal} 
                     user={currentUser} 
-                    onUpdate={currentUser ? handleUpdateUser : handleAddUser} 
+                    onUpdate={currentUser ? handleUpdateUser : handleAddUser}
+                    error={modalError}
+                    setError={setModalError}
                 />
             </div>
         </div>
@@ -225,8 +232,8 @@ const styles = {
         borderRadius: '8px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: '1200px', // Increased from 900px to 1200px
-        overflowX: 'auto', // Add horizontal scroll for smaller screens
+        maxWidth: '1200px', 
+        overflowX: 'auto',
     },
     header: {
         marginBottom: '25px',
@@ -250,23 +257,23 @@ const styles = {
         width: '100%',
         borderCollapse: 'collapse',
         marginBottom: '20px',
-        minWidth: '1000px', // Ensure table doesn't shrink too much
+        minWidth: '1000px', 
     },
     th: {
         border: '1px solid #ddd',
-        padding: '12px 8px', // Reduced horizontal padding
+        padding: '12px 8px', 
         backgroundColor: '#f2f2f2',
         textAlign: 'left',
-        whiteSpace: 'nowrap', // Prevent header text from wrapping
+        whiteSpace: 'nowrap', 
     },
     tr: {
         borderBottom: '1px solid #ddd',
     },
     td: {
         border: '1px solid #ddd',
-        padding: '12px 8px', // Reduced horizontal padding
+        padding: '12px 8px',
         textAlign: 'left',
-        maxWidth: '200px', // Limit cell width
+        maxWidth: '200px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
@@ -304,8 +311,7 @@ const styles = {
     },
 };
 
-// Add hover effects using JavaScript
-// Alternatively, these can be handled via CSS classes for better maintainability
+
 document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.querySelector('button[style*="Add User"]');
     if (addButton) {

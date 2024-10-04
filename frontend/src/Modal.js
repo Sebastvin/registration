@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Modal.css';
 
-const Modal = ({ isOpen, onClose, user, onUpdate }) => {
+const Modal = ({ isOpen, onClose, user, onUpdate, error, setError }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [mealPreference, setMealPreference] = useState('vegetarian');
@@ -13,9 +13,14 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
     const [participationStartTime, setParticipationStartTime] = useState('');
     const [participationEndTime, setParticipationEndTime] = useState('');
     const [isOrganiser, setIsOrganiser] = useState(false);
-    const [error, setError] = useState('');
+    const [internalError, setInternalError] = useState('');
 
     useEffect(() => {
+        if (isOpen) {
+            setInternalError('');
+            setError('');
+        }
+
         if (user) {
             setEmail(user.email || '');
             setMealPreference(user.meal_preference || 'vegetarian');
@@ -28,6 +33,7 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
             setParticipationEndTime(user.participation_end_time || '');
             setIsOrganiser(user.is_organiser || false);
             setPassword('');
+            setError('');
         } else {
             setEmail('');
             setPassword('');
@@ -36,11 +42,28 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
             setParticipationStartTime('');
             setParticipationEndTime('');
             setIsOrganiser(false);
+            setError('');
         }
-    }, [user]);
+    }, [user, isOpen, setError]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setInternalError('');
+        setError('');
+
+        if (!email) {
+            setInternalError('Email is required');
+            return;
+        }
+        if (!user && !password) {
+            setInternalError('Password is required for new users');
+            return;
+        }
+        if (!participationStartTime || !participationEndTime) {
+            setInternalError('Participation start and end times are required');
+            return;
+        }
+
         const newUser = {
             email,
             ...( !user && { password }),
@@ -51,19 +74,14 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
             is_organiser: isOrganiser,
         };
 
-
         console.log('Submitting User:', newUser);
 
         try {
-            if (user) {
-                await onUpdate(user.id, newUser);
-            } else {
-                await onUpdate(newUser);
-            }
-            onClose();
+            await onUpdate(user ? user.id : null, newUser);
+
         } catch (err) {
             console.error('Error in form submission:', err);
-            setError(err.message || 'An error occurred.');
+            setInternalError('An error occurred while submitting the form. Please try again.');
         }
     };
 
@@ -72,7 +90,6 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-content">
-                <button className="close-button" onClick={onClose}>&times;</button>
                 <h2>{user ? 'Update User' : 'Add User'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label>Email:</label>
@@ -158,7 +175,9 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                         />
                         Is Organiser
                     </label>
-                    {error && <p>{error}</p>}
+                    {(internalError || error) && (
+                        <p className="error-message">{internalError || error}</p>
+                    )}
                     <button type="submit">{user ? 'Update User' : 'Add User'}</button>
                 </form>
             </div>

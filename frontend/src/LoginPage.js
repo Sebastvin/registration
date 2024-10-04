@@ -15,7 +15,6 @@ function LoginPage() {
                     credentials: 'include',
                 });
 
-                console.log('Auth status response:', response.status);
 
                 if (response.ok) {
                     navigate('/profile');

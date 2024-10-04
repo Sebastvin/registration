@@ -23,7 +23,6 @@ function UserProfile() {
                 credentials: 'include',
             });
 
-            console.log('Profile response status:', response.status);
 
             if (response.status === 401) {
                 console.log('Unauthorized, redirecting to login');
@@ -36,7 +35,6 @@ function UserProfile() {
             }
 
             const data = await response.json();
-            console.log('Profile data:', data);
             setUser(data);
         } catch (error) {
             console.error('Error fetching profile:', error);
