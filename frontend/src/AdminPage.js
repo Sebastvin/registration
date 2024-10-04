@@ -1,36 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Modal from './Modal';
 
 function AdminPage() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isOrganiser, setIsOrganiser] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const checkUserRole = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/users', {
+                const response = await fetch('http://localhost:5000/api/user/role', {
                     method: 'GET',
                     credentials: 'include',
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch users');
+                    throw new Error('Failed to fetch user role');
                 }
 
                 const data = await response.json();
-                setUsers(data);
+                setIsOrganiser(data.is_organiser);
             } catch (error) {
                 setError(error.message);
                 navigate('/');
-            } finally {
-                setIsLoading(false);
             }
         };
 
-        fetchUsers();
+        checkUserRole();
     }, [navigate]);
+
+    useEffect(() => {
+        if (isOrganiser) {
+            const fetchUsers = async () => {
+                try {
+                    const response = await fetch('http://localhost:5000/api/users', {
+                        method: 'GET',
+                        credentials: 'include',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch users');
+                    }
+
+                    const data = await response.json();
+                    setUsers(data);
+                } catch (error) {
+                    setError(error.message);
+                    navigate('/');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchUsers();
+        } else {
+            setIsLoading(false);
+        }
+    }, [isOrganiser, navigate]);
 
     const handleDeleteUser = async (userId) => {
         if (window.confirm("Are you sure you want to delete this user?")) {
@@ -44,12 +75,42 @@ function AdminPage() {
                     throw new Error('Failed to delete user');
                 }
 
-                // Remove the deleted user from the state
                 setUsers(users.filter(user => user.id !== userId));
             } catch (error) {
                 setError(error.message);
             }
         }
+    };
+
+    const handleUpdateUser = async (userId, updatedUser) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedUser),
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update user');
+            }
+
+            setUsers(users.map(user => (user.id === userId ? { ...user, ...updatedUser } : user)));
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const openModal = (user) => {
+        setCurrentUser(user);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setCurrentUser(null);
     };
 
     if (isLoading) {
@@ -58,6 +119,10 @@ function AdminPage() {
 
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>;
+    }
+
+    if (!isOrganiser) {
+        return <p style={{ color: 'red' }}>Access Restricted: You do not have permission to view this page.</p>;
     }
 
     return (
@@ -81,6 +146,7 @@ function AdminPage() {
                         <tr key={user.id}>
                             <td>
                                 <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                                <button onClick={() => openModal(user)}>Update</button>
                             </td>
                             <td>{user.id}</td>
                             <td>{user.email}</td>
@@ -93,6 +159,7 @@ function AdminPage() {
                     ))}
                 </tbody>
             </table>
+            <Modal isOpen={isModalOpen} onClose={closeModal} user={currentUser} onUpdate={handleUpdateUser} />
         </div>
     );
 }
