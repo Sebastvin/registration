@@ -7,7 +7,7 @@ import RegisterPage from './RegisterPage';
 import UserProfile from './UserProfile';
 import AdminPage from './AdminPage';
 import { AuthProvider } from './AuthContext';
-import './App.css';
+import './css/App.css';
 
 function App() {
   return (

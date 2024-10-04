@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthContext from './AuthContext';
+import AuthContext from '../AuthContext';
 
 function RegisterForm() {
     const navigate = useNavigate();

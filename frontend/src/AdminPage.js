@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Modal from './Modal';
+import Modal from './components/Modal';
 
 function AdminPage() {
     const navigate = useNavigate();
