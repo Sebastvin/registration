@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
 from ..models.models import User, MealType, Meal, MealTime
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ... import db
 from datetime import datetime
+from ... import db, bcrypt
 
 user_management = Blueprint("user_management", __name__)
 
@@ -67,26 +67,17 @@ def get_user_profile():
 @jwt_required()
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
-    return (
-        jsonify(
-            {
-                "id": user.id,
-                "email": user.email,
-                "is_organiser": user.is_organiser,
-                "meal_preference": user.meal_preference.value
-                if user.meal_preference
-                else None,
-                "participation_start_time": user.participation_start_time.isoformat()
-                if user.participation_start_time
-                else None,
-                "participation_end_time": user.participation_end_time.isoformat()
-                if user.participation_end_time
-                else None,
-                "meals": [meal.meal_time.value for meal in user.meals],
-            }
-        ),
-        200,
-    )
+    return jsonify(
+        {
+            "id": user.id,
+            "email": user.email,
+            "is_organiser": user.is_organiser,
+            "meal_preference": user.meal_preference.value if user.meal_preference else None,
+            "participation_start_time": user.participation_start_time.isoformat() if user.participation_start_time else None,
+            "participation_end_time": user.participation_end_time.isoformat() if user.participation_end_time else None,
+            "meals": [meal.meal_time.value for meal in user.meals],
+        }
+    ), 200
 
 
 @user_management.route("/users", methods=["POST"])
@@ -102,9 +93,12 @@ def create_user():
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "User already exists"}), 400
 
+
+    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+
     new_user = User(
         email=data["email"],
-        password=data["password"],
+        password=hashed_password,
         is_organiser=data.get("is_organiser", False),
         meal_preference=MealType[data["meal_preference"].upper()]
         if "meal_preference" in data
@@ -121,14 +115,31 @@ def create_user():
 
     if "meals" in data:
         for meal_time in data["meals"]:
-            meal = Meal.query.filter_by(meal_time=MealTime[meal_time.upper()]).first()
+            try:
+                meal_enum = MealTime[meal_time.upper()]
+            except KeyError:
+                return jsonify({"message": f"Invalid meal choice: {meal_time}"}), 400
+            meal = Meal.query.filter_by(meal_time=meal_enum).first()
             if meal:
                 new_user.meals.append(meal)
+            else:
+                return jsonify({"message": f"Meal time not found: {meal_time}"}), 400
 
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"message": "User created successfully"}), 201
+
+    serialized_user = {
+        "id": new_user.id,
+        "email": new_user.email,
+        "is_organiser": new_user.is_organiser,
+        "meal_preference": new_user.meal_preference.name if new_user.meal_preference else None,
+        "participation_start_time": new_user.participation_start_time.isoformat() if new_user.participation_start_time else None,
+        "participation_end_time": new_user.participation_end_time.isoformat() if new_user.participation_end_time else None,
+        "meals": [meal.meal_time.name for meal in new_user.meals],
+    }
+
+    return jsonify(serialized_user), 201
 
 
 @user_management.route("/users/<int:user_id>", methods=["PUT"])
@@ -163,12 +174,29 @@ def update_user(user_id):
     if "meals" in data:
         user.meals = []
         for meal_time in data["meals"]:
-            meal = Meal.query.filter_by(meal_time=MealTime[meal_time.upper()]).first()
+            try:
+                meal_enum = MealTime[meal_time.upper()]
+            except KeyError:
+                return jsonify({"message": f"Invalid meal choice: {meal_time}"}), 400
+            meal = Meal.query.filter_by(meal_time=meal_enum).first()
             if meal:
                 user.meals.append(meal)
+            else:
+                return jsonify({"message": f"Meal time not found: {meal_time}"}), 400
 
     db.session.commit()
-    return jsonify({"message": "User updated successfully"}), 200
+
+    serialized_user = {
+        "id": user.id,
+        "email": user.email,
+        "is_organiser": user.is_organiser,
+        "meal_preference": user.meal_preference.value if user.meal_preference else None,
+        "participation_start_time": user.participation_start_time.isoformat() if user.participation_start_time else None,
+        "participation_end_time": user.participation_end_time.isoformat() if user.participation_end_time else None,
+        "meals": [meal.meal_time.value for meal in user.meals],
+    }
+
+    return jsonify(serialized_user), 200
 
 
 @user_management.route("/users/<int:user_id>", methods=["DELETE"])

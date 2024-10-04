@@ -94,16 +94,43 @@ function AdminPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update user');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update user');
             }
 
-            setUsers(users.map(user => (user.id === userId ? { ...user, ...updatedUser } : user)));
+            const updatedUserFromServer = await response.json();
+            setUsers(users.map(user => (user.id === userId ? updatedUserFromServer : user)));
         } catch (error) {
             setError(error.message);
         }
     };
 
-    const openModal = (user) => {
+    const handleAddUser = async (newUser) => {
+        try {
+            const response = await fetch('http://localhost:5000/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newUser),
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to add user');
+            }
+
+            const addedUser = await response.json();
+
+            setUsers((prevUsers) => [...prevUsers, addedUser]);
+        } catch (error) {
+            console.error('Error adding user:', error);
+            setError(error.message);
+        }
+    };
+
+    const openModal = (user = null) => {
         setCurrentUser(user);
         setIsModalOpen(true);
     };
@@ -128,6 +155,7 @@ function AdminPage() {
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
             <h2>Admin Panel - User List</h2>
+            <button onClick={() => openModal()}>Add User</button>
             <table style={{ margin: '20px', borderCollapse: 'collapse', width: '80%' }}>
                 <thead>
                     <tr>
@@ -154,14 +182,20 @@ function AdminPage() {
                             <td>{user.meal_preference}</td>
                             <td>{user.participation_start_time}</td>
                             <td>{user.participation_end_time}</td>
-                            <td>{user.meals.join(', ')}</td>
+                            <td>{user.meals ? user.meals.join(', ') : 'No meals selected'}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-            <Modal isOpen={isModalOpen} onClose={closeModal} user={currentUser} onUpdate={handleUpdateUser} />
+            <Modal 
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+                user={currentUser} 
+                onUpdate={currentUser ? handleUpdateUser : handleAddUser} 
+            />
         </div>
     );
+
 }
 
 export default AdminPage;

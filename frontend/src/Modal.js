@@ -2,71 +2,107 @@ import React, { useState, useEffect } from 'react';
 
 const Modal = ({ isOpen, onClose, user, onUpdate }) => {
     const [email, setEmail] = useState('');
-    const [isOrganiser, setIsOrganiser] = useState(false);
+    const [password, setPassword] = useState('');
     const [mealPreference, setMealPreference] = useState('vegetarian');
-    const [mealPreferences, setMealPreferences] = useState({
+    const [mealTimes, setMealTimes] = useState({
         breakfast: false,
         lunch: false,
         dinner: false,
     });
     const [participationStartTime, setParticipationStartTime] = useState('');
     const [participationEndTime, setParticipationEndTime] = useState('');
+    const [isOrganiser, setIsOrganiser] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (user) {
-            setEmail(user.email);
-            setIsOrganiser(user.is_organiser);
-            setMealPreference(user.meal_preference); // Set initial meal preference
-            setMealPreferences({
-                breakfast: user.meals.includes('breakfast'),
-                lunch: user.meals.includes('lunch'),
-                dinner: user.meals.includes('dinner'),
+            setEmail(user.email || '');
+            setMealPreference(user.meal_preference || 'vegetarian');
+            setMealTimes({
+                breakfast: user.meals?.includes('breakfast') || false,
+                lunch: user.meals?.includes('lunch') || false,
+                dinner: user.meals?.includes('dinner') || false,
             });
-            setParticipationStartTime(user.participation_start_time);
-            setParticipationEndTime(user.participation_end_time);
+            setParticipationStartTime(user.participation_start_time || '');
+            setParticipationEndTime(user.participation_end_time || '');
+      
+            if (user) {
+                setPassword('');
+            }
+        } else {
+            setEmail('');
+            setPassword('');
+            setMealPreference('vegetarian');
+            setMealTimes({ breakfast: false, lunch: false, dinner: false });
+            setParticipationStartTime('');
+            setParticipationEndTime('');
+            setIsOrganiser(false);
         }
     }, [user]);
 
-    const handleMealPreferenceChange = (e) => {
-        setMealPreference(e.target.value);
-    };
-
-    const handleMealTimeChange = (e) => {
-        const { name, checked } = e.target;
-        setMealPreferences((prev) => ({
-            ...prev,
-            [name]: checked,
-        }));
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const updatedUser = {
+        const newUser = {
             email,
-            is_organiser: isOrganiser,
+            ...( !user && { password }),
             meal_preference: mealPreference,
-            meals: Object.keys(mealPreferences).filter(meal => mealPreferences[meal]),
+            meals: Object.keys(mealTimes).filter(meal => mealTimes[meal]),
             participation_start_time: participationStartTime,
             participation_end_time: participationEndTime,
+            is_organiser: isOrganiser,
         };
-        await onUpdate(user.id, updatedUser);
-        onClose();
+
+        if (!newUser.meals || newUser.meals.length === 0) {
+            setError('Please select at least one meal option.');
+            return;
+        }
+
+        console.log('Submitting User:', newUser);
+
+        try {
+            if (user) {
+                await onUpdate(user.id, newUser);
+            } else {
+                await onUpdate(newUser);
+            }
+            onClose();
+        } catch (err) {
+            console.error('Error in form submission:', err);
+            setError(err.message || 'An error occurred.');
+        }
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="modal">
+        <div className="modal-overlay">
             <div className="modal-content">
-                <span className="close" onClick={onClose}>&times;</span>
-                <h2>Edit User</h2>
+                <h2>{user ? 'Update User' : 'Add User'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label>Email:</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                    <label>Is Organiser:</label>
-                    <input type="checkbox" checked={isOrganiser} onChange={(e) => setIsOrganiser(e.target.checked)} />
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+    
+                    {!user && (
+                        <>
+                            <label>Password:</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </>
+                    )}
                     <label>Meal Preference:</label>
-                    <select value={mealPreference} onChange={handleMealPreferenceChange}>
+                    <select
+                        value={mealPreference}
+                        onChange={(e) => setMealPreference(e.target.value)}
+                    >
                         <option value="vegetarian">Vegetarian</option>
                         <option value="meat">Meat</option>
                     </select>
@@ -76,8 +112,10 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                             <input
                                 type="checkbox"
                                 name="breakfast"
-                                checked={mealPreferences.breakfast}
-                                onChange={handleMealTimeChange}
+                                checked={mealTimes.breakfast}
+                                onChange={(e) =>
+                                    setMealTimes({ ...mealTimes, breakfast: e.target.checked })
+                                }
                             />
                             Breakfast
                         </label>
@@ -85,8 +123,10 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                             <input
                                 type="checkbox"
                                 name="lunch"
-                                checked={mealPreferences.lunch}
-                                onChange={handleMealTimeChange}
+                                checked={mealTimes.lunch}
+                                onChange={(e) =>
+                                    setMealTimes({ ...mealTimes, lunch: e.target.checked })
+                                }
                             />
                             Lunch
                         </label>
@@ -94,17 +134,36 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                             <input
                                 type="checkbox"
                                 name="dinner"
-                                checked={mealPreferences.dinner}
-                                onChange={handleMealTimeChange}
+                                checked={mealTimes.dinner}
+                                onChange={(e) =>
+                                    setMealTimes({ ...mealTimes, dinner: e.target.checked })
+                                }
                             />
                             Dinner
                         </label>
                     </div>
                     <label>Participation Start Time:</label>
-                    <input type="datetime-local" value={participationStartTime} onChange={(e) => setParticipationStartTime(e.target.value)} />
+                    <input
+                        type="datetime-local"
+                        value={participationStartTime}
+                        onChange={(e) => setParticipationStartTime(e.target.value)}
+                    />
                     <label>Participation End Time:</label>
-                    <input type="datetime-local" value={participationEndTime} onChange={(e) => setParticipationEndTime(e.target.value)} />
-                    <button type="submit">Update User</button>
+                    <input
+                        type="datetime-local"
+                        value={participationEndTime}
+                        onChange={(e) => setParticipationEndTime(e.target.value)}
+                    />
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isOrganiser}
+                            onChange={(e) => setIsOrganiser(e.target.checked)}
+                        />
+                        Is Organiser
+                    </label>
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <button type="submit">{user ? 'Update User' : 'Add User'}</button>
                 </form>
             </div>
         </div>
