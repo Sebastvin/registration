@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Modal.css';
 
 const Modal = ({ isOpen, onClose, user, onUpdate }) => {
     const [email, setEmail] = useState('');
@@ -52,10 +53,6 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
             is_organiser: isOrganiser,
         };
 
-        if (!newUser.meals || newUser.meals.length === 0) {
-            setError('Please select at least one meal option.');
-            return;
-        }
 
         console.log('Submitting User:', newUser);
 
@@ -77,6 +74,7 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-content">
+                <button className="close-button" onClick={onClose}>&times;</button>
                 <h2>{user ? 'Update User' : 'Add User'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label>Email:</label>
@@ -107,7 +105,7 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                         <option value="meat">Meat</option>
                     </select>
                     <label>Meals:</label>
-                    <div>
+                    <div className="checkbox-group">
                         <label>
                             <input
                                 type="checkbox"
@@ -162,7 +160,7 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
                         />
                         Is Organiser
                     </label>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    {error && <p>{error}</p>}
                     <button type="submit">{user ? 'Update User' : 'Add User'}</button>
                 </form>
             </div>

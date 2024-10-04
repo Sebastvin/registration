@@ -1,38 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import './MainPage.css';
 
 function MainPage() {
     const navigate = useNavigate();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    useEffect(() => {
-        const checkAuthStatus = async () => {
-            try {
-                const response = await fetch('http://localhost:5000/api/user/profile', {
-                    method: 'GET',
-                    credentials: 'include',
-                });
-                setIsAuthenticated(response.ok);
-            } catch (error) {
-                console.error('Error checking auth status:', error);
-                setIsAuthenticated(false);
-            }
-        };
-
-        checkAuthStatus();
-    }, []);
 
     return (
         <div className="main-page">
-            <h1>Registration System</h1>
-            {isAuthenticated ? (
-                <button onClick={() => navigate('/profile')}>Go to Profile</button>
-            ) : (
-                <>
-                    <button onClick={() => navigate('/login')}>Login</button>
-                    <button onClick={() => navigate('/register')}>Register</button>
-                </>
-            )}
+            <header className="hero">
+                <h1>Welcome to Event Registration</h1>
+                <p>Simplify your event planning and registration process</p>
+                <button onClick={() => navigate('/register')} className="cta-button">Get Started</button>
+            </header>
+
+            <section className="features">
+                <h2>Why Choose Event Registration?</h2>
+                <div className="feature-grid">
+                    <div className="feature-item">
+                        <h3>Effortless Registration</h3>
+                        <p>Quick and easy sign-up process for all your event participants</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Meal Preference Tracking</h3>
+                        <p>Easily manage dietary requirements and meal choices</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Time Management</h3>
+                        <p>Set participation times and organize meal schedules efficiently</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Admin Controls</h3>
+                        <p>Powerful tools for event organizers to manage registrations</p>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

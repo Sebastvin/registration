@@ -98,8 +98,11 @@ function AdminPage() {
                 throw new Error(errorData.message || 'Failed to update user');
             }
 
-            const updatedUserFromServer = await response.json();
-            setUsers(users.map(user => (user.id === userId ? updatedUserFromServer : user)));
+            const updatedUsers = users.map(user => 
+                user.id === userId ? { ...user, ...updatedUser } : user
+            );
+            setUsers(updatedUsers);
+            closeModal();
         } catch (error) {
             setError(error.message);
         }
@@ -122,8 +125,8 @@ function AdminPage() {
             }
 
             const addedUser = await response.json();
-
             setUsers((prevUsers) => [...prevUsers, addedUser]);
+            closeModal();
         } catch (error) {
             console.error('Error adding user:', error);
             setError(error.message);
@@ -141,61 +144,180 @@ function AdminPage() {
     };
 
     if (isLoading) {
-        return <p>Loading...</p>;
+        return <p style={styles.loading}>Loading...</p>;
     }
 
     if (error) {
-        return <p style={{ color: 'red' }}>{error}</p>;
+        return <p style={styles.error}>{error}</p>;
     }
 
     if (!isOrganiser) {
-        return <p style={{ color: 'red' }}>Access Restricted: You do not have permission to view this page.</p>;
+        return <p style={styles.accessDenied}>Access Restricted: You do not have permission to view this page.</p>;
     }
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-            <h2>Admin Panel - User List</h2>
-            <button onClick={() => openModal()}>Add User</button>
-            <table style={{ margin: '20px', borderCollapse: 'collapse', width: '80%' }}>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>ID</th>
-                        <th>Email</th>
-                        <th>Is Organiser</th>
-                        <th>Meal Preference</th>
-                        <th>Participation Start Time</th>
-                        <th>Participation End Time</th>
-                        <th>Meals</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map((user) => (
-                        <tr key={user.id}>
-                            <td>
-                                <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
-                                <button onClick={() => openModal(user)}>Update</button>
-                            </td>
-                            <td>{user.id}</td>
-                            <td>{user.email}</td>
-                            <td>{user.is_organiser ? 'Yes' : 'No'}</td>
-                            <td>{user.meal_preference}</td>
-                            <td>{user.participation_start_time}</td>
-                            <td>{user.participation_end_time}</td>
-                            <td>{user.meals ? user.meals.join(', ') : 'No meals selected'}</td>
+        <div style={styles.container}>
+            <div style={styles.card}>
+                <h2 style={styles.header}>Admin Panel - User List</h2>
+                <button style={styles.addButton} onClick={() => openModal()}>Add User</button>
+                <table style={styles.table}>
+                    <thead>
+                        <tr>
+                            <th style={styles.th}>Action</th>
+                            <th style={styles.th}>ID</th>
+                            <th style={styles.th}>Email</th>
+                            <th style={styles.th}>Is Organiser</th>
+                            <th style={styles.th}>Meal Preference</th>
+                            <th style={styles.th}>Participation Start Time</th>
+                            <th style={styles.th}>Participation End Time</th>
+                            <th style={styles.th}>Meals</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-            <Modal 
-                isOpen={isModalOpen} 
-                onClose={closeModal} 
-                user={currentUser} 
-                onUpdate={currentUser ? handleUpdateUser : handleAddUser} 
-            />
+                    </thead>
+                    <tbody>
+                        {users.map((user) => (
+                            <tr key={user.id} style={styles.tr}>
+                                <td style={styles.td}>
+                                    <button  style={{...styles.actionButton, ...styles.deleteButton}}  onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                                    <button style={{...styles.actionButton, ...styles.updateButton}}  onClick={() => openModal(user)}>Update</button>
+                                </td>
+                                <td style={styles.td}>{user.id}</td>
+                                <td style={styles.td}>{user.email}</td>
+                                <td style={styles.td}>{user.is_organiser ? 'Yes' : 'No'}</td>
+                                <td style={styles.td}>{user.meal_preference}</td>
+                                <td style={styles.td}>{new Date(user.participation_start_time).toLocaleString()}</td>
+                                <td style={styles.td}>{new Date(user.participation_end_time).toLocaleString()}</td>
+                                <td style={styles.td}>{user.meals ? user.meals.join(', ') : 'No meals selected'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <Modal 
+                    isOpen={isModalOpen} 
+                    onClose={closeModal} 
+                    user={currentUser} 
+                    onUpdate={currentUser ? handleUpdateUser : handleAddUser} 
+                />
+            </div>
         </div>
     );
-
 }
+
+const styles = {
+    container: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '40px 20px',
+        backgroundColor: '#f0f2f5',
+        minHeight: '100vh',
+    },
+    card: {
+        backgroundColor: '#ffffff',
+        padding: '30px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        width: '100%',
+        maxWidth: '1200px', // Increased from 900px to 1200px
+        overflowX: 'auto', // Add horizontal scroll for smaller screens
+    },
+    header: {
+        marginBottom: '25px',
+        textAlign: 'center',
+        color: '#333333',
+        borderBottom: '2px solid #e0e0e0',
+        paddingBottom: '10px',
+    },
+    addButton: {
+        padding: '10px 20px',
+        backgroundColor: '#61dafb',
+        border: 'none',
+        borderRadius: '4px',
+        color: '#ffffff',
+        cursor: 'pointer',
+        fontSize: '16px',
+        transition: 'background-color 0.3s ease',
+        marginBottom: '20px',
+    },
+    table: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        marginBottom: '20px',
+        minWidth: '1000px', // Ensure table doesn't shrink too much
+    },
+    th: {
+        border: '1px solid #ddd',
+        padding: '12px 8px', // Reduced horizontal padding
+        backgroundColor: '#f2f2f2',
+        textAlign: 'left',
+        whiteSpace: 'nowrap', // Prevent header text from wrapping
+    },
+    tr: {
+        borderBottom: '1px solid #ddd',
+    },
+    td: {
+        border: '1px solid #ddd',
+        padding: '12px 8px', // Reduced horizontal padding
+        textAlign: 'left',
+        maxWidth: '200px', // Limit cell width
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+    actionButton: {
+        padding: '6px 12px',
+        marginRight: '5px',
+        backgroundColor: '#ff4d4f',
+        border: 'none',
+        borderRadius: '4px',
+        color: '#ffffff',
+        cursor: 'pointer',
+        fontSize: '14px',
+        transition: 'background-color 0.3s ease',
+    },
+    deleteButton: {
+        backgroundColor: '#ff4d4f',
+    },
+    updateButton: {
+        backgroundColor: '#52c41a',
+    },
+    error: {
+        color: 'red',
+        textAlign: 'center',
+        marginTop: '20px',
+    },
+    loading: {
+        textAlign: 'center',
+        marginTop: '20px',
+    },
+    accessDenied: {
+        color: 'red',
+        textAlign: 'center',
+        marginTop: '20px',
+    },
+};
+
+// Add hover effects using JavaScript
+// Alternatively, these can be handled via CSS classes for better maintainability
+document.addEventListener('DOMContentLoaded', () => {
+    const addButton = document.querySelector('button[style*="Add User"]');
+    if (addButton) {
+        addButton.addEventListener('mouseover', () => {
+            addButton.style.backgroundColor = '#21a1f1';
+        });
+        addButton.addEventListener('mouseout', () => {
+            addButton.style.backgroundColor = '#61dafb';
+        });
+    }
+
+    const actionButtons = document.querySelectorAll('button[style*="background-color: #ff4d4f"]');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseover', () => {
+            button.style.backgroundColor = '#ff7875';
+        });
+        button.addEventListener('mouseout', () => {
+            button.style.backgroundColor = '#ff4d4f';
+        });
+    });
+});
 
 export default AdminPage;
