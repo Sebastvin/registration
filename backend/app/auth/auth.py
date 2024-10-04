@@ -47,6 +47,8 @@ def register():
     if not is_valid:
         return jsonify({"message": f"Invalid email: {email_or_error}"}), 400
 
+    email = email_or_error.lower()
+
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         return jsonify({"message": "Email already registered"}), 400
@@ -108,6 +110,8 @@ def login():
     is_valid, email_or_error = validate_email_address(email)
     if not is_valid:
         return jsonify({"message": f"Invalid email: {email_or_error}"}), 400
+
+    email = email_or_error.lower()
 
     user = User.query.filter_by(email=email_or_error).first()
 

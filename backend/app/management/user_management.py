@@ -67,17 +67,26 @@ def get_user_profile():
 @jwt_required()
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
-    return jsonify(
-        {
-            "id": user.id,
-            "email": user.email,
-            "is_organiser": user.is_organiser,
-            "meal_preference": user.meal_preference.value if user.meal_preference else None,
-            "participation_start_time": user.participation_start_time.isoformat() if user.participation_start_time else None,
-            "participation_end_time": user.participation_end_time.isoformat() if user.participation_end_time else None,
-            "meals": [meal.meal_time.value for meal in user.meals],
-        }
-    ), 200
+    return (
+        jsonify(
+            {
+                "id": user.id,
+                "email": user.email,
+                "is_organiser": user.is_organiser,
+                "meal_preference": user.meal_preference.value
+                if user.meal_preference
+                else None,
+                "participation_start_time": user.participation_start_time.isoformat()
+                if user.participation_start_time
+                else None,
+                "participation_end_time": user.participation_end_time.isoformat()
+                if user.participation_end_time
+                else None,
+                "meals": [meal.meal_time.value for meal in user.meals],
+            }
+        ),
+        200,
+    )
 
 
 @user_management.route("/users", methods=["POST"])
@@ -92,7 +101,6 @@ def create_user():
 
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "User already exists"}), 400
-
 
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
 
@@ -128,14 +136,19 @@ def create_user():
     db.session.add(new_user)
     db.session.commit()
 
-
     serialized_user = {
         "id": new_user.id,
         "email": new_user.email,
         "is_organiser": new_user.is_organiser,
-        "meal_preference": new_user.meal_preference.name if new_user.meal_preference else None,
-        "participation_start_time": new_user.participation_start_time.isoformat() if new_user.participation_start_time else None,
-        "participation_end_time": new_user.participation_end_time.isoformat() if new_user.participation_end_time else None,
+        "meal_preference": new_user.meal_preference.name
+        if new_user.meal_preference
+        else None,
+        "participation_start_time": new_user.participation_start_time.isoformat()
+        if new_user.participation_start_time
+        else None,
+        "participation_end_time": new_user.participation_end_time.isoformat()
+        if new_user.participation_end_time
+        else None,
         "meals": [meal.meal_time.name for meal in new_user.meals],
     }
 
@@ -191,8 +204,12 @@ def update_user(user_id):
         "email": user.email,
         "is_organiser": user.is_organiser,
         "meal_preference": user.meal_preference.value if user.meal_preference else None,
-        "participation_start_time": user.participation_start_time.isoformat() if user.participation_start_time else None,
-        "participation_end_time": user.participation_end_time.isoformat() if user.participation_end_time else None,
+        "participation_start_time": user.participation_start_time.isoformat()
+        if user.participation_start_time
+        else None,
+        "participation_end_time": user.participation_end_time.isoformat()
+        if user.participation_end_time
+        else None,
         "meals": [meal.meal_time.value for meal in user.meals],
     }
 
