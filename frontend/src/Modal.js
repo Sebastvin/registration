@@ -26,10 +26,8 @@ const Modal = ({ isOpen, onClose, user, onUpdate }) => {
             });
             setParticipationStartTime(user.participation_start_time || '');
             setParticipationEndTime(user.participation_end_time || '');
-      
-            if (user) {
-                setPassword('');
-            }
+            setIsOrganiser(user.is_organiser || false);  // Add this line
+            setPassword('');
         } else {
             setEmail('');
             setPassword('');
