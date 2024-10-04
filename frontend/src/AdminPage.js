@@ -32,6 +32,26 @@ function AdminPage() {
         fetchUsers();
     }, [navigate]);
 
+    const handleDeleteUser = async (userId) => {
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete user');
+                }
+
+                // Remove the deleted user from the state
+                setUsers(users.filter(user => user.id !== userId));
+            } catch (error) {
+                setError(error.message);
+            }
+        }
+    };
+
     if (isLoading) {
         return <p>Loading...</p>;
     }
@@ -46,6 +66,7 @@ function AdminPage() {
             <table style={{ margin: '20px', borderCollapse: 'collapse', width: '80%' }}>
                 <thead>
                     <tr>
+                        <th>Action</th>
                         <th>ID</th>
                         <th>Email</th>
                         <th>Is Organiser</th>
@@ -58,6 +79,9 @@ function AdminPage() {
                 <tbody>
                     {users.map((user) => (
                         <tr key={user.id}>
+                            <td>
+                                <button onClick={() => handleDeleteUser(user.id)}>Delete</button>
+                            </td>
                             <td>{user.id}</td>
                             <td>{user.email}</td>
                             <td>{user.is_organiser ? 'Yes' : 'No'}</td>
