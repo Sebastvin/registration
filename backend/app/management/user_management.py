@@ -197,34 +197,73 @@ def update_user(user_id):
                 user.meals.append(meal)
             else:
                 return jsonify({"message": f"Meal time not found: {meal_time}"}), 400
-            
+
     if "participation_start_time" in data or "participation_end_time" in data:
         try:
-            start_datetime = datetime.fromisoformat(data["participation_start_time"]) if "participation_start_time" in data else user.participation_start_time
-            end_datetime = datetime.fromisoformat(data["participation_end_time"]) if "participation_end_time" in data else user.participation_end_time
+            start_datetime = (
+                datetime.fromisoformat(data["participation_start_time"])
+                if "participation_start_time" in data
+                else user.participation_start_time
+            )
+            end_datetime = (
+                datetime.fromisoformat(data["participation_end_time"])
+                if "participation_end_time" in data
+                else user.participation_end_time
+            )
 
-
-            if start_datetime and start_datetime.tzinfo is None:
+            # Ensure the datetime objects are timezone-aware
+            if start_datetime.tzinfo is None:
                 start_datetime = start_datetime.replace(tzinfo=timezone.utc)
-            if end_datetime and end_datetime.tzinfo is None:
+            if end_datetime.tzinfo is None:
                 end_datetime = end_datetime.replace(tzinfo=timezone.utc)
 
         except ValueError:
-            return jsonify({"message": "Invalid date format. Please use ISO format (YYYY-MM-DDTHH:MM:SS)"}), 400
+            return (
+                jsonify(
+                    {
+                        "message": "Invalid date format. Please use ISO format (YYYY-MM-DDTHH:MM:SS)"
+                    }
+                ),
+                400,
+            )
 
         if not start_datetime or not end_datetime:
-            return jsonify({"message": "Both participation start and end times are required"}), 400
+            return (
+                jsonify(
+                    {"message": "Both participation start and end times are required"}
+                ),
+                400,
+            )
 
-        current_time = datetime.now(timezone.utc) 
+        current_time = datetime.now(timezone.utc)
+        current_date = current_time.date()
+
+        if start_datetime.date() < current_date:
+            return (
+                jsonify(
+                    {"message": "Participation start date cannot be earlier than today"}
+                ),
+                400,
+            )
+
         if start_datetime < current_time:
-            return jsonify({"message": "Participation start time cannot be in the past"}), 400
+            return (
+                jsonify({"message": "Participation start time cannot be in the past"}),
+                400,
+            )
 
         if end_datetime < start_datetime:
-            return jsonify({"message": "Participation end time cannot be earlier than start time"}), 400
+            return (
+                jsonify(
+                    {
+                        "message": "Participation end time cannot be earlier than start time"
+                    }
+                ),
+                400,
+            )
 
         user.participation_start_time = start_datetime
         user.participation_end_time = end_datetime
-
 
     db.session.commit()
 

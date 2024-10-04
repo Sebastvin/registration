@@ -74,7 +74,6 @@ const Modal = ({ isOpen, onClose, user, onUpdate, error, setError }) => {
             is_organiser: isOrganiser,
         };
 
-        console.log('Submitting User:', newUser);
 
         try {
             await onUpdate(user ? user.id : null, newUser);
