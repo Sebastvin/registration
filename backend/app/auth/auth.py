@@ -38,7 +38,7 @@ def register():
     meal_preference = data.get("meal_preference")
     start_time = data.get("participation_start_time")
     end_time = data.get("participation_end_time")
-    meal_choices = data.get("meal_choices", [])
+    meal_times = data.get("meal_times", [])
 
     if not email or not password:
         return jsonify({"message": "Email and password are required"}), 400
@@ -81,16 +81,18 @@ def register():
         participation_end_time=end_datetime,
     )
 
-    for meal_choice in meal_choices:
-        try:
-            meal_time = MealTime[meal_choice.upper()]
-            meal = Meal.query.filter_by(meal_time=meal_time).first()
+    if "meal_times" in data:
+        for meal_time in data["meal_times"]:
+            try:
+                meal_enum = MealTime[meal_time.upper()]
+            except KeyError:
+                return jsonify({"message": f"Invalid meal choice: {meal_time}"}), 400
+            meal = Meal.query.filter_by(meal_time=meal_enum).first()
             if meal:
                 new_user.meals.append(meal)
             else:
-                return jsonify({"message": f"Invalid meal choice: {meal_choice}"}), 400
-        except KeyError:
-            return jsonify({"message": f"Invalid meal choice: {meal_choice}"}), 400
+                new_meal = Meal(meal_time=meal_enum)
+                new_user.meals.append(new_meal)
 
     db.session.add(new_user)
     db.session.commit()

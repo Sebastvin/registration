@@ -7,7 +7,7 @@ function RegisterForm() {
     const { checkAuthStatus } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [mealPreference, setMealPreference] = useState('vegetarian');
+    const [mealPreference, setMealPreference] = useState('meat');
     const [mealTimes, setMealTimes] = useState({
         breakfast: false,
         lunch: false,
@@ -46,44 +46,53 @@ function RegisterForm() {
     }, [navigate]);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccessMessage('');
-
-        const selectedMealTimes = Object.keys(mealTimes).filter(time => mealTimes[time]);
-
-        const userData = {
-            email,
-            password,
-            meal_preference: mealPreference,
-            meals: selectedMealTimes,
-            participation_start_time: participationStartTime,
-            participation_end_time: participationEndTime,
-        };
-
-        try {
-            const response = await fetch('http://localhost:5000/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-                credentials: 'include',
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message);
-            }
-
-            setSuccessMessage('Registration successful!');
-            await checkAuthStatus();
-            navigate('/profile');
+      e.preventDefault();
+      setError('');
+      setSuccessMessage('');
+  
+      const selectedMealTimes = Object.keys(mealTimes).filter(time => mealTimes[time]);
+  
+      const userData = {
+          email,
+          password,
+          meal_preference: mealPreference,
+          meal_times: selectedMealTimes,
+          participation_start_time: participationStartTime,
+          participation_end_time: participationEndTime,
+      };
+  
+      try {
+          const response = await fetch('http://localhost:5000/register', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(userData),
+              credentials: 'include',
+          });
+  
+          const responseText = await response.text();
+          console.log('Full response:', responseText);
+  
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          let data;
+          try {
+              data = JSON.parse(responseText);
+          } catch (e) {
+              console.error('Error parsing JSON:', e);
+              throw new Error('The server returned an invalid response');
+          }
+  
+          setSuccessMessage('Registration successful!');
+          await checkAuthStatus();
+          navigate('/profile');
 
             setEmail('');
             setPassword('');
-            setMealPreference('vegetarian');
+            setMealPreference('meat');
             setMealTimes({
                 breakfast: false,
                 lunch: false,
