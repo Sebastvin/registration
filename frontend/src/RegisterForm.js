@@ -52,13 +52,16 @@ function RegisterForm() {
   
       const selectedMealTimes = Object.keys(mealTimes).filter(time => mealTimes[time]);
   
+      const formattedStartTime = new Date(participationStartTime).toISOString();
+      const formattedEndTime = new Date(participationEndTime).toISOString();
+  
       const userData = {
           email,
           password,
           meal_preference: mealPreference,
           meal_times: selectedMealTimes,
-          participation_start_time: participationStartTime,
-          participation_end_time: participationEndTime,
+          participation_start_time: formattedStartTime,
+          participation_end_time: formattedEndTime,
       };
   
       try {
@@ -71,20 +74,12 @@ function RegisterForm() {
               credentials: 'include',
           });
   
-          const responseText = await response.text();
-          console.log('Full response:', responseText);
-  
           if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+              const errorData = await response.json();
+              throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
           }
   
-          let data;
-          try {
-              data = JSON.parse(responseText);
-          } catch (e) {
-              console.error('Error parsing JSON:', e);
-              throw new Error('The server returned an invalid response');
-          }
+
   
           setSuccessMessage('Registration successful!');
           await checkAuthStatus();

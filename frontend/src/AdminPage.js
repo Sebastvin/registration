@@ -10,6 +10,14 @@ function AdminPage() {
     const [isOrganiser, setIsOrganiser] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit'
+        }).format(date);
+      };
 
     useEffect(() => {
         const checkUserRole = async () => {
@@ -184,8 +192,8 @@ function AdminPage() {
                                 <td style={styles.td}>{user.email}</td>
                                 <td style={styles.td}>{user.is_organiser ? 'Yes' : 'No'}</td>
                                 <td style={styles.td}>{user.meal_preference}</td>
-                                <td style={styles.td}>{new Date(user.participation_start_time).toLocaleString()}</td>
-                                <td style={styles.td}>{new Date(user.participation_end_time).toLocaleString()}</td>
+                                <td style={styles.td}>{formatDate(user.participation_start_time)}</td>
+                                <td style={styles.td}>{formatDate(user.participation_end_time)}</td>
                                 <td style={styles.td}>{user.meals ? user.meals.join(', ') : 'No meals selected'}</td>
                             </tr>
                         ))}

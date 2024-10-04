@@ -7,6 +7,14 @@ function UserProfile() {
     const { isAuthenticated } = useContext(AuthContext);
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit'
+        }).format(date);
+      };
 
     const fetchUserProfile = async () => {
         try {
@@ -66,11 +74,11 @@ function UserProfile() {
                 </div>
                 <div style={styles.field}>
                     <span style={styles.label}>Participation Start Time:</span>
-                    <span style={styles.value}>{new Date(user.participation_start_time).toLocaleString()}</span>
+                    <span style={styles.value}>{formatDate(user.participation_start_time)}</span>
                 </div>
                 <div style={styles.field}>
                     <span style={styles.label}>Participation End Time:</span>
-                    <span style={styles.value}>{new Date(user.participation_end_time).toLocaleString()}</span>
+                    <span style={styles.value}>{formatDate(user.participation_end_time)}</span>
                 </div>
                 <div style={styles.field}>
                     <span style={styles.label}>Meal Choices:</span>
