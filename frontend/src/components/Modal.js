@@ -89,6 +89,7 @@ const Modal = ({ isOpen, onClose, user, onUpdate, error, setError }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-content">
+                <button className="close-button" onClick={onClose}>×</button>
                 <h2>{user ? 'Update User' : 'Add User'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label>Email:</label>
